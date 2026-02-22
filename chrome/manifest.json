@@ -1,0 +1,37 @@
+{
+  "manifest_version": 3,
+  "name": "WordCraft",
+  "version": "1.2",
+  "description": "Grammarly alternative tool",
+  "icons": {
+    "16": "assets/logo128.png",
+    "48": "assets/logo128.png",
+    "128": "assets/logo128.png",
+    "256": "assets/logo256.png"
+  },
+  "permissions": [
+    "activeTab",
+    "storage",
+    "contextMenus",
+    "scripting"
+  ],
+  "host_permissions": [
+    "<all_urls>"
+  ],
+  "background": {
+    "service_worker": "background.js"
+  },
+  "content_scripts": [
+    {
+      "matches": ["<all_urls>"],
+      "js": ["content.js"]
+    }
+  ],
+  "options_ui": {
+    "page": "options.html",
+    "open_in_tab": true
+  },
+  "action": {
+    "default_popup": "popup.html"
+  }
+}
