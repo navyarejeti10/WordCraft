@@ -2,8 +2,8 @@
   "name": "WordCraft",
   "version": "1.2",
   "scripts": {
-    "css:watch": "npx tailwindcss -i dist/chrome/libs/tw-input.css -o dist/chrome/libs/tw-output.css --minify --watch",
-    "css:build": "npx tailwindcss -i dist/chrome/libs/tw-input.css -o dist/chrome/libs/tw-output.css --minify",
+    "css:watch": "npx tailwindcss -i chrome/libs/tw-input.css -o chrome/libs/tw-output.css --minify --watch",
+    "css:build": "npx tailwindcss -i chrome/libs/tw-input.css -o chrome/libs/tw-output.css --minify",
     "build": "npm run css:build && node build.js"
   },
   "dependencies": {
