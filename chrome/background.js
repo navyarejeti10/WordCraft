@@ -114,7 +114,7 @@ async function enhanceWithGroq(prompt) {
   }
 
   // Use the default Groq endpoint; custom endpoint removed from UI
-  const endpoint = 'https://api.groq.com/v1/chat/completions';
+  const endpoint = 'https://api.groq.com/openai/v1/chat/completions';
 
   try {
     const response = await fetch(endpoint, {
