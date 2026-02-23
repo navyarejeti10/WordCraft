@@ -4,10 +4,8 @@ const browserAPI = (typeof browser !== 'undefined' ? browser : chrome);
 async function saveOptions() {
   try {
     const options = {
-      llmProvider: 'groq',
       apiKey: document.getElementById('apiKey').value,
       llmModel: document.getElementById('llmModel').value,
-      customEndpoint: document.getElementById('customEndpoint').value,
       customPrompts: getCustomPrompts()
     };
 
@@ -56,10 +54,8 @@ function snakeCase(str) {
 async function restoreOptions() {
   try {
     const defaults = {
-      llmProvider: 'groq',
       apiKey: '',
       llmModel: 'llama3-8b-8192',
-      customEndpoint: '',
       customPrompts: []
     };
 
@@ -67,7 +63,7 @@ async function restoreOptions() {
       browserAPI.storage.sync.get(defaults, resolve);
     });
 
-    const elementIds = ['llmProvider', 'apiKey', 'llmModel', 'customEndpoint'];
+    const elementIds = ['apiKey', 'llmModel'];
 
     elementIds.forEach(id => {
       const element = document.getElementById(id);
@@ -89,74 +85,15 @@ async function restoreOptions() {
       addPromptToUI(prompt.title, prompt.prompt, prompt.id);
     });
 
-    updateUIForProvider(items.llmProvider);
+    // UI is fixed to Groq by design; no provider-specific UI update needed
   } catch (error) {
     console.error('Error restoring options:', error);
     showErrorMessage('Error restoring options. Please try reloading the page.');
   }
 }
 
-function updateUIForProvider(provider) {
-  try {
-    const labels = document.querySelectorAll('label span');
-    const apiKeySpan = Array.from(labels).find(span => span.textContent.includes('API Key'));
-    const modelSpan = Array.from(labels).find(span => span.textContent.includes('Model'));
-    const endpointSpan = Array.from(labels).find(span => span.textContent.includes('Endpoint'));
-    
-    const apiKeyInput = document.getElementById('apiKey');
-    const apiKeyHelp = document.getElementById('apiKeyHelp');
-    const llmModelInput = document.getElementById('llmModel');
-    const modelHelp = document.getElementById('modelHelp');
-    const customEndpointInput = document.getElementById('customEndpoint');
-    const customEndpointContainer = customEndpointInput.parentElement;
-    const endpointHelp = document.getElementById('endpointHelp');
-    const fetchModelsButton = document.getElementById('fetchModels');
-    const availableModelsSelect = document.getElementById('availableModels');
-
-    if (!apiKeySpan || !modelSpan || !endpointSpan) {
-      console.warn('Could not find required UI labels');
-      return;
-    }
-
-    // Reset visibility
-    customEndpointContainer.style.display = 'block';
-    apiKeyInput.parentElement.style.display = 'block';
-    if (availableModelsSelect) {
-      availableModelsSelect.classList.add('hidden');
-      availableModelsSelect.innerHTML = '<option value="">Select a model...</option>';
-    }
-
-    // Show/hide fetch models button based on provider capability
-    const canFetchModels = ['groq'].includes(provider);
-    if (fetchModelsButton) {
-      fetchModelsButton.style.display = canFetchModels ? 'block' : 'none';
-    }
-
-    switch (provider) {
-      case 'groq':
-        apiKeySpan.textContent = 'Groq API Key:';
-        apiKeyInput.placeholder = 'gsk_...';
-        if (apiKeyHelp) apiKeyHelp.textContent = 'Get your API key from https://console.groq.com/keys';
-        llmModelInput.placeholder = 'llama3-8b-8192, llama3-70b-8192, mixtral-8x7b-32768, etc.';
-        if (modelHelp) modelHelp.textContent = 'Common models: llama3-8b-8192, llama3-70b-8192, mixtral-8x7b-32768';
-        customEndpointInput.placeholder = 'https://api.groq.com/v1/chat/completions (default)';
-        if (endpointHelp) endpointHelp.textContent = 'Leave empty to use default Groq endpoint';
-        break;
-
-      default:
-        console.warn(`Unknown provider: ${provider}`);
-        break;
-    }
-  } catch (error) {
-    console.error('Error updating UI for provider:', error);
-    showErrorMessage('Error updating provider settings.');
-  }
-}
-
 async function fetchAvailableModels() {
-  const provider = document.getElementById('llmProvider').value;
   const apiKey = document.getElementById('apiKey').value;
-  const customEndpoint = document.getElementById('customEndpoint').value;
   const fetchButton = document.getElementById('fetchModels');
   const fetchText = document.getElementById('fetchModelsText');
   const fetchSpinner = document.getElementById('fetchModelsSpinner');
@@ -168,15 +105,8 @@ async function fetchAvailableModels() {
   if (fetchSpinner) fetchSpinner.classList.remove('hidden');
 
   try {
-    let endpoint, headers = {};
-
-    if (provider !== 'groq') {
-      throw new Error(`Model fetching only supported for Groq in this build`);
-    }
-
-    endpoint = customEndpoint
-      ? customEndpoint.replace('/chat/completions', '/models')
-      : 'https://api.groq.com/openai/v1/models';
+    let endpoint = 'https://api.groq.com/openai/v1/models';
+    let headers = {};
     if (apiKey) headers['Authorization'] = `Bearer ${apiKey}`;
 
     const response = await fetch(endpoint, { headers });
@@ -287,17 +217,12 @@ document.addEventListener('DOMContentLoaded', () => {
   restoreOptions();
 
   const saveButton = document.getElementById('save');
-  const providerSelect = document.getElementById('llmProvider');
   const addPromptButton = document.getElementById('add-prompt');
   const fetchModelsButton = document.getElementById('fetchModels');
   const availableModelsSelect = document.getElementById('availableModels');
 
   if (saveButton) {
     saveButton.addEventListener('click', saveOptions);
-  }
-
-  if (providerSelect) {
-    providerSelect.addEventListener('change', (e) => updateUIForProvider(e.target.value));
   }
 
   if (addPromptButton) {

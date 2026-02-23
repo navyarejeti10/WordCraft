@@ -113,7 +113,8 @@ async function enhanceWithGroq(prompt) {
     throw new Error('LLM model not set for Groq. Please set it in the extension options.');
   }
 
-  const endpoint = config.customEndpoint || 'https://api.groq.com/v1/chat/completions';
+  // Use the default Groq endpoint; custom endpoint removed from UI
+  const endpoint = 'https://api.groq.com/v1/chat/completions';
 
   try {
     const response = await fetch(endpoint, {
@@ -235,18 +236,15 @@ const enhanceTextWithRateLimit = (promptId, text) => {
 async function getConfig() {
   const defaults = {
     apiKey: '',
-    llmProvider: 'groq',
     llmModel: 'llama3-8b-8192',
-    customEndpoint: '',
     customPrompts: []
   };
   const config = await browserAPI.storage.sync.get(defaults);
   return {
     apiKey: config.apiKey,
     llmModel: config.llmModel,
-    customEndpoint: config.customEndpoint,
-    llmProvider: config.llmProvider,
-    customPrompts: config.customPrompts
+    customPrompts: config.customPrompts,
+    // Note: provider and custom endpoint are fixed/removed in this build
   };
 }
 

@@ -8,7 +8,6 @@ document.addEventListener('DOMContentLoaded', async function() {
         // Use async/await and proper error handling
         const result = await new Promise((resolve) => {
             browserAPI.storage.sync.get({
-                llmProvider: 'groq', // default and only provider
                 apiKey: ''
             }, resolve);
         });
