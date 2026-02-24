@@ -41,10 +41,8 @@ async function injectContentScript(tabId) {
   }
 }
 
-browserAPI.contextMenus.onClicked.addListener((info, tab) => {
-  browserAPI.storage.sync.get('customPrompts', async ({ customPrompts = [] }) => {
-    const allPrompts = [...DEFAULT_PROMPTS, ...customPrompts];
-    if (allPrompts.some(prompt => prompt.id === info.menuItemId)) {
+browserAPI.contextMenus.onClicked.addListener(async (info, tab) => {
+    if (DEFAULT_PROMPTS.some(prompt => prompt.id === info.menuItemId)) {
       try {
         try {
           await browserAPI.tabs.sendMessage(tab.id, { action: 'ping' });
@@ -57,7 +55,6 @@ browserAPI.contextMenus.onClicked.addListener((info, tab) => {
         console.error('Error handling context menu click:', error);
       }
     }
-  });
 });
 
 async function sendEnhanceTextMessage(tabId, promptId, selectedText) {
@@ -90,10 +87,8 @@ browserAPI.runtime.onMessage.addListener((request, sender, sendResponse) => {
 
 async function enhanceTextWithLLM(promptId, text) {
   const config = await getConfig();
-  const customPrompts = config.customPrompts || [];
-  
-  const allPrompts = [...DEFAULT_PROMPTS, ...customPrompts];
-  const prompt = allPrompts.find(p => p.id === promptId)?.prompt;
+
+  const prompt = DEFAULT_PROMPTS.find(p => p.id === promptId)?.prompt;
   if (!prompt) {
     throw new Error('Invalid prompt ID');
   }
@@ -113,7 +108,8 @@ async function enhanceWithGroq(prompt) {
     throw new Error('LLM model not set for Groq. Please set it in the extension options.');
   }
 
-  const endpoint = config.customEndpoint || 'https://api.groq.com/v1/chat/completions';
+  // Use the default Groq endpoint; custom endpoint removed from UI
+  const endpoint = 'https://api.groq.com/openai/v1/chat/completions';
 
   try {
     const response = await fetch(endpoint, {
@@ -235,18 +231,13 @@ const enhanceTextWithRateLimit = (promptId, text) => {
 async function getConfig() {
   const defaults = {
     apiKey: '',
-    llmProvider: 'groq',
     llmModel: 'llama3-8b-8192',
-    customEndpoint: '',
-    customPrompts: []
   };
   const config = await browserAPI.storage.sync.get(defaults);
   return {
     apiKey: config.apiKey,
     llmModel: config.llmModel,
-    customEndpoint: config.customEndpoint,
-    llmProvider: config.llmProvider,
-    customPrompts: config.customPrompts
+    // Note: provider and custom endpoint are fixed/removed in this build
   };
 }
 
@@ -258,9 +249,7 @@ function log(message, level = 'info') {
 async function updateContextMenu() {
   try {
     await browserAPI.contextMenus.removeAll();
-    const config = await getConfig();
-    const customPrompts = config.customPrompts || [];
-    const allPrompts = [...DEFAULT_PROMPTS, ...customPrompts];
+    const allPrompts = [...DEFAULT_PROMPTS];
 
     await browserAPI.contextMenus.create({
       id: 'wordcraft',
@@ -281,8 +270,4 @@ async function updateContextMenu() {
   }
 }
 
-browserAPI.storage.onChanged.addListener((changes, area) => {
-  if (area === 'sync' && changes.customPrompts) {
-    updateContextMenu();
-  }
-});
+
