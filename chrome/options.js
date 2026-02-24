@@ -6,7 +6,6 @@ async function saveOptions() {
     const options = {
       apiKey: document.getElementById('apiKey').value,
       llmModel: document.getElementById('llmModel').value,
-      customPrompts: getCustomPrompts()
     };
 
     await new Promise((resolve, reject) => {
@@ -33,20 +32,6 @@ async function saveOptions() {
   }
 }
 
-function getCustomPrompts() {
-  try {
-    const promptContainers = document.querySelectorAll('.prompt-container');
-    return Array.from(promptContainers).map(container => ({
-      id: snakeCase(container.querySelector('.prompt-title').value || ''),
-      title: container.querySelector('.prompt-title').value || '',
-      prompt: container.querySelector('.prompt-text').value || ''
-    })).filter(prompt => prompt.title && prompt.prompt); // Filter out empty prompts
-  } catch (error) {
-    console.error('Error getting custom prompts:', error);
-    return [];
-  }
-}
-
 function snakeCase(str) {
   return str.toLowerCase().replace(/[^a-zA-Z0-9]+/g, '_').replace(/^_|_$/g, '');
 }
@@ -56,7 +41,6 @@ async function restoreOptions() {
     const defaults = {
       apiKey: '',
       llmModel: 'llama3-8b-8192',
-      customPrompts: []
     };
 
     const items = await new Promise(resolve => {
@@ -79,11 +63,6 @@ async function restoreOptions() {
     while (promptsContainer.firstChild) {
       promptsContainer.removeChild(promptsContainer.firstChild);
     }
-
-    // Restore custom prompts
-    items.customPrompts.forEach(prompt => {
-      addPromptToUI(prompt.title, prompt.prompt, prompt.id);
-    });
 
     // UI is fixed to Groq by design; no provider-specific UI update needed
   } catch (error) {
@@ -241,22 +220,3 @@ document.addEventListener('DOMContentLoaded', () => {
     });
   }
 });
-
-// Autosave function for custom prompts
-async function saveCustomPrompts(customPrompts) {
-  try {
-    await new Promise((resolve, reject) => {
-      browserAPI.storage.sync.set({ customPrompts }, () => {
-        if (browserAPI.runtime.lastError) {
-          reject(browserAPI.runtime.lastError);
-        } else {
-          resolve();
-        }
-      });
-    });
-    console.log('Custom prompts saved');
-  } catch (error) {
-    console.error('Error saving custom prompts:', error);
-    showErrorMessage('Error saving custom prompts.');
-  }
-}
