@@ -32,10 +32,6 @@ async function saveOptions() {
   }
 }
 
-function snakeCase(str) {
-  return str.toLowerCase().replace(/[^a-zA-Z0-9]+/g, '_').replace(/^_|_$/g, '');
-}
-
 async function restoreOptions() {
   try {
     const defaults = {
@@ -57,12 +53,6 @@ async function restoreOptions() {
         console.warn(`Element with id '${id}' not found`);
       }
     });
-
-    // Clear existing prompts before restoring
-    const promptsContainer = document.getElementById('prompts-container');
-    while (promptsContainer.firstChild) {
-      promptsContainer.removeChild(promptsContainer.firstChild);
-    }
 
     // UI is fixed to Groq by design; no provider-specific UI update needed
   } catch (error) {
@@ -123,51 +113,6 @@ async function fetchAvailableModels() {
   }
 }
 
-function addPromptToUI(title = '', prompt = '', id = '') {
-  try {
-    const promptsContainer = document.getElementById('prompts-container');
-    const template = document.getElementById('prompt-template');
-    
-    if (!promptsContainer || !template) {
-      throw new Error('Required elements not found');
-    }
-
-    const promptElement = template.content.cloneNode(true);
-
-    const titleInput = promptElement.querySelector('.prompt-title');
-    const textInput = promptElement.querySelector('.prompt-text');
-    
-    if (titleInput && textInput) {
-      titleInput.value = title;
-      textInput.value = prompt;
-    }
-
-    // Add a hidden input for the ID
-    const idInput = document.createElement('input');
-    idInput.type = 'hidden';
-    idInput.className = 'prompt-id';
-    idInput.value = id || snakeCase(title);
-    
-    const container = promptElement.querySelector('.prompt-container');
-    if (container) {
-      container.appendChild(idInput);
-      
-      const deleteButton = container.querySelector('.delete-prompt');
-      if (deleteButton) {
-        deleteButton.addEventListener('click', function() {
-          container.remove();
-          saveOptions(); // Auto-save when removing a prompt
-        });
-      }
-    }
-
-    promptsContainer.appendChild(promptElement);
-  } catch (error) {
-    console.error('Error adding prompt to UI:', error);
-    showErrorMessage('Error adding new prompt.');
-  }
-}
-
 function showErrorMessage(message) {
   const status = document.getElementById('status');
   if (status) {
@@ -196,16 +141,11 @@ document.addEventListener('DOMContentLoaded', () => {
   restoreOptions();
 
   const saveButton = document.getElementById('save');
-  const addPromptButton = document.getElementById('add-prompt');
   const fetchModelsButton = document.getElementById('fetchModels');
   const availableModelsSelect = document.getElementById('availableModels');
 
   if (saveButton) {
     saveButton.addEventListener('click', saveOptions);
-  }
-
-  if (addPromptButton) {
-    addPromptButton.addEventListener('click', () => addPromptToUI());
   }
 
   if (fetchModelsButton) {
